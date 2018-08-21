@@ -95,9 +95,24 @@ FPTree FPTree::getConditionalTree(int item){
     return CondTree;
 }
 
+int FPTree::getCount(){
+    return root.count;
+}
 
-void FPTree::genItemSets(){
-    
+void FPTree::genItemSets(int minSup,set<int> &left,vector<int> &prior,set<vector<int>> &itemsets){
+    for(const auto &iter: flist) {
+        if(left.find(iter.first)!=left.end()){
+            FPTree CondTree = getConditionalTree(iter.first);
+            if(CondTree.getCount()>=minSup){
+                prior.push_back(iter.first);
+                itemsets.insert(prior);
+                left.erase(iter.first);
+                CondTree.genItemSets(minSup,left,prior,itemsets);
+                prior.pop_back();
+            }
+        }
+    }
+
 }
 
 

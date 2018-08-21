@@ -40,11 +40,13 @@ class FPTree{
     
     Node root;
 
-    map<int,int> flist;
+    map<int,int,greater<int>> flist;
 
     set<int> ilist;
 
     map<int,Node*> headerTable;
+
+    set<vector<int>> itemsets;
 
     public:
     //Constructor.
@@ -55,6 +57,8 @@ class FPTree{
 
     Node* getRoot();
 
+    int getCount();
+
     //Add a transaction and modify the FPTree.
     void AddTrans(Node* root,deque<int> &trans,int k);
 
@@ -63,7 +67,7 @@ class FPTree{
 
     FPTree getConditionalTree(int item);
 
-    void genItemSets();
+    void genItemSets(int minSup,set<int> &left,vector<int> &prior,set<vector<int>> &itemsets);
 
 
 };
