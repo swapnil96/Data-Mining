@@ -12,6 +12,7 @@
 #include <map>
 #include <set>
 #include <deque>
+#include <queue>
 
 using namespace std;
 
@@ -40,6 +41,7 @@ class FPTree{
     
     Node root;
 
+
     map<int,int> flist;
 
     
@@ -48,6 +50,8 @@ class FPTree{
     bool flist_done;
 
     public:
+
+    void printTree();
 
     bool operator()( const int & i1, const int & i2  )
     { 
@@ -68,14 +72,14 @@ class FPTree{
     int getCount();
 
     //Add a transaction and modify the FPTree.
-    void AddTrans(Node* root,deque<int> &trans,int k);
+    void AddTrans(Node* root,vector<int> &trans,int k);
 
     //FPGrow function.Takes the filename to grow the fp tree rooted at root.
-    void FPGrow(string filename);
+    void FPGrow(string filename,int minSup);
 
     FPTree getConditionalTree(int item);
 
-    void genItemSets(int minSup,set<int> &left,vector<int> &prior);
+    void genItemSets(int minSup,vector<int> &prior);
 
 
 };

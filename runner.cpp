@@ -6,11 +6,11 @@ using namespace std;
 void GenAllItemSets(string filename,int minSup){
     FPTree tree=FPTree();
 
-    tree.FPGrow(filename);
-
+    tree.FPGrow(filename,minSup);
+    tree.printTree();
     vector<int> prior;
 
-    tree.genItemSets(minSup,tree.ilist,prior);
+    tree.genItemSets(minSup,prior);
 
 
 }

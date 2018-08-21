@@ -2,6 +2,8 @@
 #include <sstream>
 
 
+bool debug = false;
+
 void Process(vector<int> s){
     for(auto &c:s){
         cout<<c<<" ";
@@ -17,11 +19,37 @@ FPTree::FPTree(){
 }
 
 
+void FPTree::printTree(){
+    queue<Node> q;
+    q.push(root);
+    while (!q.empty()) {
+        auto top = q.front();
+        q.pop();
+        if (top.item == -2) {
+            cout << endl;
+            continue;
+        }
+        else if (top.item == -1)
+            cout << top.item << ":" << top.count << endl;
+        else
+            cout << top.item << ":" << top.count << "\t";
+        for (auto it: top.children) {
+            q.push(*it.second);
+        }
+        Node temp = Node();
+        temp.item = -2;
+        q.push(temp);
+    }
+}
 
 
-void FPTree::AddTrans(Node* root,deque<int> &trans,int k) {
+
+
+void FPTree::AddTrans(Node* root,vector<int> &trans,int k) {
     root->count+=k;
-    auto i = trans.front();
+    if(trans.empty())
+        return;
+    auto i = trans.back();
 
     if(!flist_done){
         flist[i]+=k;
@@ -41,12 +69,12 @@ void FPTree::AddTrans(Node* root,deque<int> &trans,int k) {
     }
 
 
-    trans.pop_front();
+    trans.pop_back();
     AddTrans(root->children[i],trans,k);
     
 }
 
-void FPTree::FPGrow(string filename){
+void FPTree::FPGrow(string filename,int minSup){
     string line;
 
     ifstream input(filename, ios::in);
@@ -67,17 +95,27 @@ void FPTree::FPGrow(string filename){
 
     
 
-
-    input.clear();
-    input.seekg(0, ios::beg);
-
-    if(input.is_open()) {
-        while (getline(input, line)) {
+    ifstream input2(filename, ios::in);
+    
+    
+    if(input2.is_open()) {
+        while (getline(input2, line)) {
             istringstream iss(line);
-            deque<int> trans;
-            trans.assign(istream_iterator<int>( iss ), istream_iterator<int>());
+            vector<int> trans;
+            while (iss >> number) {
+                if(flist[number]>=minSup)
+                    trans.push_back(number);
+            }
+            if(trans.empty())
+                continue;
             sort(trans.begin(),trans.end(),(*this));
-            AddTrans(&root,trans,1);
+            if(debug){
+                cout<<"trans"<<endl;
+                for(auto&t:trans)
+                    cout<<t<<" ";
+                cout<<endl;
+            }
+            //AddTrans(&root,trans,1);
         }
     }
 }
@@ -92,14 +130,22 @@ FPTree FPTree::getConditionalTree(int item){
     Node* nextptr = headerTable[item];
 
     while(nextptr!=nullptr){
-        deque<int> branch;
+        vector<int> branch;
         Node* headptr = nextptr;
         int k=nextptr->count;
+        headptr=headptr->parent;
         while(headptr->item!=-1){
-            branch.push_front(headptr->item);
+            branch.push_back(headptr->item);
             headptr=headptr->parent;            
         }
+        if(debug){
+            cout<<"Brach\n";
+            for(auto&b:branch)
+                cout<<b<<" ";
+            cout<<endl;
+        }
         CondTree.AddTrans(CondTree.getRoot(),branch,k);
+        nextptr=nextptr->next;
     }
 
     return CondTree;
@@ -109,23 +155,30 @@ int FPTree::getCount(){
     return root.count;
 }
 
-void FPTree::genItemSets(int minSup,set<int> &left,vector<int> &prior){
+void FPTree::genItemSets(int minSup,vector<int> &prior){
+    set<int> proccesed;
     for(const auto &iter: flist) {
-        if(left.find(iter.first)!=left.end()){
-            left.erase(iter.first);
+        if(proccesed.find(iter.first)==proccesed.end()){
             
             if(flist[iter.first]<minSup){
                 continue;
             }
 
+            
+
             FPTree CondTree = getConditionalTree(iter.first);
+
+            if(debug)
+                cout<<iter.first<<":"<<CondTree.getCount()<<endl;
                 
             prior.push_back(iter.first);
             Process(prior);
             
-            CondTree.genItemSets(minSup,left,prior);
+            CondTree.genItemSets(minSup,prior);
             prior.pop_back();
         }
+        proccesed.insert(iter.first);
+        
     }
 }
 
