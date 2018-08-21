@@ -2,6 +2,12 @@
 #include <sstream>
 
 
+void Process(vector<int> s){
+    
+}
+
+
+
 FPTree::FPTree(){
     root=Node();
 
@@ -106,7 +112,7 @@ void FPTree::genItemSets(int minSup,set<int> &left,vector<int> &prior,set<vector
                 
             if(CondTree.getCount()>=minSup){
                 prior.push_back(iter.first);
-                itemsets.insert(prior);
+                Process(prior);
                 CondTree.genItemSets(minSup,left,prior,itemsets);
                 prior.pop_back();
             }
