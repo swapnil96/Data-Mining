@@ -31,7 +31,6 @@ void FPTree::AddTrans(Node* root,deque<int> &trans,int k) {
                 hptr = hptr->next;
             hptr->next=root->children[i];
         }
-        
     }
 
 
@@ -103,10 +102,11 @@ void FPTree::genItemSets(int minSup,set<int> &left,vector<int> &prior,set<vector
     for(const auto &iter: flist) {
         if(left.find(iter.first)!=left.end()){
             FPTree CondTree = getConditionalTree(iter.first);
+            left.erase(iter.first);
+                
             if(CondTree.getCount()>=minSup){
                 prior.push_back(iter.first);
                 itemsets.insert(prior);
-                left.erase(iter.first);
                 CondTree.genItemSets(minSup,left,prior,itemsets);
                 prior.pop_back();
             }
