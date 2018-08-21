@@ -42,10 +42,13 @@ class FPTree{
     Node root;
 
 
-    map<int,int> flist;
+    unordered_map<int,int> flist;
 
+    vector<int> ilist;
+
+    set<int> is;
     
-    map<int,Node*> headerTable;
+    unordered_map<int,Node*> headerTable;
 
     bool flist_done;
 
@@ -53,16 +56,8 @@ class FPTree{
 
     void printTree();
 
-    bool operator()( const int & i1, const int & i2  )
-    { 
-        if(flist[i1]!=flist[i2]){
-            return flist[i1]<flist[i2];
-        }
-        return i1<i2;
-    }
-
-    set<int> ilist;
-
+   
+    
     //Constructor.
     FPTree();
 

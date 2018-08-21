@@ -2,6 +2,8 @@
 #include <sstream>
 
 
+unordered_map<int,int> glist;
+
 bool debug = false;
 
 void Process(vector<int> s){
@@ -10,6 +12,7 @@ void Process(vector<int> s){
     }
     cout<<endl;
 }
+
 
 
 
@@ -53,6 +56,11 @@ void FPTree::AddTrans(Node* root,vector<int> &trans,int k) {
 
     if(!flist_done){
         flist[i]+=k;
+        if(is.find(i)==is.end()){
+            ilist.push_back(i);
+            is.insert(i);
+        }
+
     }
 
     if(root->children.find(i)==root->children.end()){
@@ -87,7 +95,11 @@ void FPTree::FPGrow(string filename,int minSup){
             istringstream iss(line);
             while (iss >> number) {
                 flist[number]++;
-                ilist.insert(number);
+                if(is.find(number)==is.end()){
+                    ilist.push_back(number);
+                    is.insert(number);
+                }
+                
             }
         }
         input.close();
@@ -97,7 +109,10 @@ void FPTree::FPGrow(string filename,int minSup){
 
     ifstream input2(filename, ios::in);
     
+    glist = (flist);
+
     
+            
     if(input2.is_open()) {
         while (getline(input2, line)) {
             istringstream iss(line);
@@ -108,14 +123,19 @@ void FPTree::FPGrow(string filename,int minSup){
             }
             if(trans.empty())
                 continue;
-            sort(trans.begin(),trans.end(),(*this));
+            sort(trans.begin(),trans.end(),[](const int& i1, const int& i2) {
+                if(glist[i1]!=glist[i2]){
+                    return glist[i1]<glist[i2];
+                }
+                return i1<i2;
+            });
             if(debug){
                 cout<<"trans"<<endl;
                 for(auto&t:trans)
                     cout<<t<<" ";
                 cout<<endl;
             }
-            //AddTrans(&root,trans,1);
+            AddTrans(&root,trans,1);
         }
     }
 }
@@ -157,27 +177,33 @@ int FPTree::getCount(){
 
 void FPTree::genItemSets(int minSup,vector<int> &prior){
     set<int> proccesed;
-    for(const auto &iter: flist) {
-        if(proccesed.find(iter.first)==proccesed.end()){
+    sort(ilist.begin(),ilist.end(),[this](const int& i1, const int& i2) {
+        if(flist[i1]!=flist[i2]){
+            return flist[i1]<flist[i2];
+        }
+        return i1<i2;
+    });
+    for(const auto &iter: ilist) {
+        if(proccesed.find(iter)==proccesed.end()){
             
-            if(flist[iter.first]<minSup){
+            if(flist[iter]<minSup){
                 continue;
             }
 
             
 
-            FPTree CondTree = getConditionalTree(iter.first);
+            FPTree CondTree = getConditionalTree(iter);
 
             if(debug)
-                cout<<iter.first<<":"<<CondTree.getCount()<<endl;
+                cout<<iter<<":"<<CondTree.getCount()<<endl;
                 
-            prior.push_back(iter.first);
+            prior.push_back(iter);
             Process(prior);
             
             CondTree.genItemSets(minSup,prior);
             prior.pop_back();
         }
-        proccesed.insert(iter.first);
+        proccesed.insert(iter);
         
     }
 }

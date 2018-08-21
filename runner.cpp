@@ -7,7 +7,7 @@ void GenAllItemSets(string filename,int minSup){
     FPTree tree=FPTree();
 
     tree.FPGrow(filename,minSup);
-    tree.printTree();
+    //tree.printTree();
     vector<int> prior;
 
     tree.genItemSets(minSup,prior);
