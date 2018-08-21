@@ -2,6 +2,7 @@
 
 using namespace std;
 
+
 void GenAllItemSets(string filename,int minSup){
     FPTree tree=FPTree();
 

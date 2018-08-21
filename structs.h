@@ -49,14 +49,20 @@ class FPTree{
 
     public:
 
+    bool operator()( const int & i1, const int & i2  )
+    { 
+        if(flist[i1]!=flist[i2]){
+            return flist[i1]<flist[i2];
+        }
+        return i1<i2;
+    }
+
     set<int> ilist;
 
     //Constructor.
     FPTree();
 
-    //Compare function to sort in flist order.
-    bool comp(int const& i1,int const& i2);
-
+    
     Node* getRoot();
 
     int getCount();

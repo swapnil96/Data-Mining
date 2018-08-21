@@ -3,7 +3,10 @@
 
 
 void Process(vector<int> s){
-
+    for(auto &c:s){
+        cout<<c<<" ";
+    }
+    cout<<endl;
 }
 
 
@@ -14,12 +17,6 @@ FPTree::FPTree(){
 }
 
 
-bool FPTree::comp(int const& i1,int const& i2){
-    if(flist[i1]!=flist[i2]){
-        return flist[i1]<flist[i2];
-    }
-    return i1<i2;
-}
 
 
 void FPTree::AddTrans(Node* root,deque<int> &trans,int k) {
@@ -68,6 +65,7 @@ void FPTree::FPGrow(string filename){
         input.close();
     }
 
+    
 
 
     input.clear();
@@ -78,7 +76,7 @@ void FPTree::FPGrow(string filename){
             istringstream iss(line);
             deque<int> trans;
             trans.assign(istream_iterator<int>( iss ), istream_iterator<int>());
-            sort(trans.begin(),trans.end(),comp);
+            sort(trans.begin(),trans.end(),(*this));
             AddTrans(&root,trans,1);
         }
     }
