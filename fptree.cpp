@@ -14,7 +14,7 @@ FPTree::FPTree(){
 }
 
 
-bool FPTree::comp(int i1,int i2){
+bool FPTree::comp(int const& i1,int const& i2){
     if(flist[i1]!=flist[i2]){
         return flist[i1]<flist[i2];
     }
@@ -67,6 +67,8 @@ void FPTree::FPGrow(string filename){
         }
         input.close();
     }
+
+
 
     input.clear();
     input.seekg(0, ios::beg);
@@ -125,10 +127,10 @@ void FPTree::genItemSets(int minSup,set<int> &left,vector<int> &prior){
             
             CondTree.genItemSets(minSup,left,prior);
             prior.pop_back();
-            
         }
     }
-
 }
+
+
 
 

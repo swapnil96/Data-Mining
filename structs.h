@@ -42,18 +42,20 @@ class FPTree{
 
     map<int,int> flist;
 
-    set<int> ilist;
-
+    
     map<int,Node*> headerTable;
 
     bool flist_done;
 
     public:
+
+    set<int> ilist;
+
     //Constructor.
     FPTree();
 
     //Compare function to sort in flist order.
-    bool comp(int i1,int i2);
+    bool comp(int const& i1,int const& i2);
 
     Node* getRoot();
 
