@@ -1,16 +1,114 @@
-#include"structs.h"
+#include <iostream>
+#include <vector>
+#include <string>
+#include <fstream>
 #include <sstream>
+#include <ctime>
+#include <unordered_map>
+#include <assert.h>
+#include <algorithm>
+#include <ostream>
+#include <iterator>
+#include <map>
+#include <set>
+#include <deque>
+#include <queue>
+#include <sstream>
+
+using namespace std;
+
+
+/* Number of transactions in transaction file */
+int numTransactions;
+/* Minimum support for a itemset to be frequent */
+double minSup;
+
+ofstream outc;
+    
+
+string outf;
+
+struct Node{
+    double item;
+    int count;
+
+    Node* parent;
+    Node* next;
+    map<int,struct Node*> children;
+
+    Node():item(-1),count(0){
+
+    };
+
+    Node(int i,int c):item(i),count(c){
+        next = nullptr;
+        parent = nullptr;
+    };
+
+};
+
+
+class FPTree{
+    private:
+    
+    Node root;
+
+
+    unordered_map<int,int> flist;
+
+    vector<int> ilist;
+
+    set<int> is;
+    
+    unordered_map<int,Node*> headerTable;
+
+    bool flist_done;
+
+
+
+    public:
+
+    
+
+    void printTree();
+
+   
+    
+    //Constructor.
+    FPTree();
+
+    
+
+    
+    Node* getRoot();
+
+    int getCount();
+
+    //Add a transaction and modify the FPTree.
+    void AddTrans(Node* root,vector<int> &trans,int k);
+
+    //FPGrow function.Takes the filename to grow the fp tree rooted at root.
+    void FPGrow(string filename);
+
+    FPTree getConditionalTree(int item);
+
+    void genItemSets(vector<int> &prior);
+
+
+};
+
 
 
 unordered_map<int,int> glist;
 
 bool debug = false;
 
+
 void Process(vector<int> s){
     for(auto &c:s){
-        cout<<c<<" ";
+        outc<<c<<" ";
     }
-    cout<<endl;
+    outc<<endl;
 }
 
 
@@ -19,7 +117,9 @@ void Process(vector<int> s){
 FPTree::FPTree(){
     root=Node();
     flist_done=false;
+    
 }
+
 
 
 void FPTree::printTree(){
@@ -82,7 +182,7 @@ void FPTree::AddTrans(Node* root,vector<int> &trans,int k) {
     
 }
 
-void FPTree::FPGrow(string filename,int minSup){
+void FPTree::FPGrow(string filename){
     string line;
 
     ifstream input(filename, ios::in);
@@ -92,6 +192,7 @@ void FPTree::FPGrow(string filename,int minSup){
     flist_done = true;
     if (input.is_open()) {
         while (getline(input, line)) {
+            numTransactions++;
             istringstream iss(line);
             while (iss >> number) {
                 flist[number]++;
@@ -104,6 +205,7 @@ void FPTree::FPGrow(string filename,int minSup){
         }
         input.close();
     }
+    //cout<<numTransactions<<endl;
 
     
 
@@ -118,7 +220,7 @@ void FPTree::FPGrow(string filename,int minSup){
             istringstream iss(line);
             vector<int> trans;
             while (iss >> number) {
-                if(flist[number]>=minSup)
+                if((flist[number])>=(minSup*numTransactions)/100)
                     trans.push_back(number);
             }
             if(trans.empty())
@@ -175,7 +277,7 @@ int FPTree::getCount(){
     return root.count;
 }
 
-void FPTree::genItemSets(int minSup,vector<int> &prior){
+void FPTree::genItemSets(vector<int> &prior){
     set<int> proccesed;
     sort(ilist.begin(),ilist.end(),[this](const int& i1, const int& i2) {
         if(flist[i1]!=flist[i2]){
@@ -186,7 +288,7 @@ void FPTree::genItemSets(int minSup,vector<int> &prior){
     for(const auto &iter: ilist) {
         if(proccesed.find(iter)==proccesed.end()){
             
-            if(flist[iter]<minSup){
+            if((flist[iter])<(minSup*numTransactions)/100){
                 continue;
             }
 
@@ -200,7 +302,7 @@ void FPTree::genItemSets(int minSup,vector<int> &prior){
             prior.push_back(iter);
             Process(prior);
             
-            CondTree.genItemSets(minSup,prior);
+            CondTree.genItemSets(prior);
             prior.pop_back();
         }
         proccesed.insert(iter);
@@ -208,6 +310,26 @@ void FPTree::genItemSets(int minSup,vector<int> &prior){
     }
 }
 
+void GenAllItemSets(string filename){
+    FPTree tree = FPTree();
 
+    tree.FPGrow(filename);
+    //tree.printTree();
+    vector<int> prior;
+    tree.genItemSets(prior);
+}
+
+
+int main(int argc, char** argv) {
+    ios_base::sync_with_stdio(false); cin.tie(NULL);
+    string transactionFileName(argv[1]);
+    numTransactions=0;
+    outf=string(argv[3]);
+    minSup= atof(argv[2]);
+    outc.open(outf);
+    
+    GenAllItemSets(transactionFileName);
+    return 0;
+}
 
 
