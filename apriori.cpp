@@ -25,10 +25,12 @@ class Apriori {
     /* Minimum support for a itemset to be frequent */
     double minimumSupport;
 
+    ofstream output;
+
     public:
     /* Constructor to get the parameters and initialize the algorithm */
-    Apriori(string fileName, double support) {
-        transactionFileName = fileName;
+    Apriori(string inFileName, string outFileName, double support) {
+        transactionFileName = inFileName;
         minimumSupport = support/100.0;
 
         string line;
@@ -36,6 +38,7 @@ class Apriori {
     	numTransactions=0;
         ifstream input(transactionFileName, ios::in);
         int number;
+        output.open(outFileName, ios::out);
 
         if (input.is_open()) {
             while (getline(input, line)) {
@@ -114,8 +117,12 @@ class Apriori {
         input.close();
 
         for (int i = 0; i < itemsets.size(); i++)
-			if ((counts[i]/(double)numTransactions) >= minimumSupport)
+			if ((counts[i]/(double)numTransactions) >= minimumSupport) {
 				frequentItemsets.push_back(itemsets[i]);
+                for (auto &it: itemsets[i])
+                    output << it << " ";
+                output << endl;
+            }
 
         itemsets = frequentItemsets;
         cout << "Done finding frequent sets: " << itemsets.size() << endl;
@@ -154,9 +161,9 @@ class Apriori {
                 }
                 assert(different > 0);
 
-                // TODO Pruning
 
                 if (different == 1) {
+                    // TODO Pruning
                     sort(newItemSet.begin(), newItemSet.end());
                     stringstream result;
                     copy(newItemSet.begin(), newItemSet.end(), ostream_iterator<int>(result, " "));
@@ -175,9 +182,11 @@ class Apriori {
 
 
 int main(int argc, char** argv) {
+    ios_base::sync_with_stdio(false); cin.tie(NULL);
     string transactionFileName(argv[1]);
     double minimumSupport = atof(argv[2]);
-    Apriori apriori(transactionFileName, minimumSupport); 
+    string outputFileName(argv[3]);
+    Apriori apriori(transactionFileName, outputFileName, minimumSupport); 
     apriori.start();
     return 0;
 }
