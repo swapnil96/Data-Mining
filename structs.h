@@ -40,13 +40,13 @@ class FPTree{
     
     Node root;
 
-    map<int,int,greater<int>> flist;
+    map<int,int> flist;
 
     set<int> ilist;
 
     map<int,Node*> headerTable;
 
-    set<vector<int>> itemsets;
+    bool flist_done;
 
     public:
     //Constructor.
@@ -67,7 +67,7 @@ class FPTree{
 
     FPTree getConditionalTree(int item);
 
-    void genItemSets(int minSup,set<int> &left,vector<int> &prior,set<vector<int>> &itemsets);
+    void genItemSets(int minSup,set<int> &left,vector<int> &prior);
 
 
 };

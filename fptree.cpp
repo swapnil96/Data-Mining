@@ -3,14 +3,14 @@
 
 
 void Process(vector<int> s){
-    
+
 }
 
 
 
 FPTree::FPTree(){
     root=Node();
-
+    flist_done=false;
 }
 
 
@@ -25,6 +25,10 @@ bool FPTree::comp(int i1,int i2){
 void FPTree::AddTrans(Node* root,deque<int> &trans,int k) {
     root->count+=k;
     auto i = trans.front();
+
+    if(!flist_done){
+        flist[i]+=k;
+    }
 
     if(root->children.find(i)==root->children.end()){
         root->children[i] = new Node(i,0);     
@@ -52,6 +56,7 @@ void FPTree::FPGrow(string filename){
     int number;
 
     //Init the flist and ilist.
+    flist_done = true;
     if (input.is_open()) {
         while (getline(input, line)) {
             istringstream iss(line);
@@ -104,18 +109,23 @@ int FPTree::getCount(){
     return root.count;
 }
 
-void FPTree::genItemSets(int minSup,set<int> &left,vector<int> &prior,set<vector<int>> &itemsets){
+void FPTree::genItemSets(int minSup,set<int> &left,vector<int> &prior){
     for(const auto &iter: flist) {
         if(left.find(iter.first)!=left.end()){
-            FPTree CondTree = getConditionalTree(iter.first);
             left.erase(iter.first);
-                
-            if(CondTree.getCount()>=minSup){
-                prior.push_back(iter.first);
-                Process(prior);
-                CondTree.genItemSets(minSup,left,prior,itemsets);
-                prior.pop_back();
+            
+            if(flist[iter.first]<minSup){
+                continue;
             }
+
+            FPTree CondTree = getConditionalTree(iter.first);
+                
+            prior.push_back(iter.first);
+            Process(prior);
+            
+            CondTree.genItemSets(minSup,left,prior);
+            prior.pop_back();
+            
         }
     }
 
