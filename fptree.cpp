@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <ostream>
 #include <iterator>
+#include <ctime>
 #include <map>
 #include <set>
 #include <deque>
@@ -17,16 +18,15 @@
 
 using namespace std;
 
-
 /* Number of transactions in transaction file */
 int numTransactions;
 /* Minimum support for a itemset to be frequent */
 double minSup;
 
 ofstream outc;
-    
-
 string outf;
+bool debug = false;
+bool plot;
 
 struct Node{
     double item;
@@ -44,65 +44,37 @@ struct Node{
         next = nullptr;
         parent = nullptr;
     };
-
 };
-
 
 class FPTree{
     private:
-    
-    Node root;
-
-
-    unordered_map<int,int> flist;
-
-    vector<int> ilist;
-
-    set<int> is;
-    
-    unordered_map<int,Node*> headerTable;
-
-    bool flist_done;
-
-
+        Node root;
+        unordered_map<int,int> flist;
+        vector<int> ilist;
+        set<int> is;
+        unordered_map<int,Node*> headerTable;
+        bool flist_done;
 
     public:
+        void printTree();
 
-    
+        //Constructor.
+        FPTree();
+        Node* getRoot();
+        int getCount();
 
-    void printTree();
+        //Add a transaction and modify the FPTree.
+        void AddTrans(Node* root,vector<int> &trans,int k);
 
-   
-    
-    //Constructor.
-    FPTree();
+        //FPGrow function.Takes the filename to grow the fp tree rooted at root.
+        void FPGrow(string filename);
 
-    
+        FPTree getConditionalTree(int item);
 
-    
-    Node* getRoot();
-
-    int getCount();
-
-    //Add a transaction and modify the FPTree.
-    void AddTrans(Node* root,vector<int> &trans,int k);
-
-    //FPGrow function.Takes the filename to grow the fp tree rooted at root.
-    void FPGrow(string filename);
-
-    FPTree getConditionalTree(int item);
-
-    void genItemSets(vector<int> &prior);
-
-
+        void genItemSets(vector<int> &prior);
 };
 
-
-
 unordered_map<int,int> glist;
-
-bool debug = false;
-
 
 void Process(vector<int> s){
     for(auto &c:s){
@@ -111,16 +83,10 @@ void Process(vector<int> s){
     outc<<endl;
 }
 
-
-
-
 FPTree::FPTree(){
     root=Node();
     flist_done=false;
-    
 }
-
-
 
 void FPTree::printTree(){
     queue<Node> q;
@@ -145,9 +111,6 @@ void FPTree::printTree(){
     }
 }
 
-
-
-
 void FPTree::AddTrans(Node* root,vector<int> &trans,int k) {
     root->count+=k;
     if(trans.empty())
@@ -160,9 +123,7 @@ void FPTree::AddTrans(Node* root,vector<int> &trans,int k) {
             ilist.push_back(i);
             is.insert(i);
         }
-
     }
-
     if(root->children.find(i)==root->children.end()){
         root->children[i] = new Node(i,0);     
         root->children[i]->parent = root;
@@ -176,15 +137,12 @@ void FPTree::AddTrans(Node* root,vector<int> &trans,int k) {
         }
     }
 
-
     trans.pop_back();
     AddTrans(root->children[i],trans,k);
-    
 }
 
 void FPTree::FPGrow(string filename){
     string line;
-
     ifstream input(filename, ios::in);
     int number;
 
@@ -200,21 +158,12 @@ void FPTree::FPGrow(string filename){
                     ilist.push_back(number);
                     is.insert(number);
                 }
-                
             }
         }
         input.close();
     }
-    //cout<<numTransactions<<endl;
-
-    
-
     ifstream input2(filename, ios::in);
-    
     glist = (flist);
-
-    
-            
     if(input2.is_open()) {
         while (getline(input2, line)) {
             istringstream iss(line);
@@ -248,9 +197,7 @@ Node* FPTree::getRoot(){
 
 FPTree FPTree::getConditionalTree(int item){
     FPTree CondTree = FPTree();
-
     Node* nextptr = headerTable[item];
-
     while(nextptr!=nullptr){
         vector<int> branch;
         Node* headptr = nextptr;
@@ -269,7 +216,6 @@ FPTree FPTree::getConditionalTree(int item){
         CondTree.AddTrans(CondTree.getRoot(),branch,k);
         nextptr=nextptr->next;
     }
-
     return CondTree;
 }
 
@@ -287,49 +233,53 @@ void FPTree::genItemSets(vector<int> &prior){
     });
     for(const auto &iter: ilist) {
         if(proccesed.find(iter)==proccesed.end()){
-            
             if((flist[iter])<(minSup*numTransactions)/100){
                 continue;
             }
-
-            
-
             FPTree CondTree = getConditionalTree(iter);
-
             if(debug)
                 cout<<iter<<":"<<CondTree.getCount()<<endl;
                 
             prior.push_back(iter);
             Process(prior);
-            
             CondTree.genItemSets(prior);
             prior.pop_back();
         }
         proccesed.insert(iter);
-        
     }
 }
 
-void GenAllItemSets(string filename){
-    FPTree tree = FPTree();
+void fptreeGo(string filename, string outputFileName, double minimumSupport){
+    numTransactions = 0;
+    outf = outputFileName;
+    minSup = minimumSupport;
+    outc.open(outf);
 
+    clock_t begin;
+    if (plot)
+        begin = clock();
+    
+    FPTree tree = FPTree();
     tree.FPGrow(filename);
     //tree.printTree();
     vector<int> prior;
     tree.genItemSets(prior);
-}
 
+    if (plot) {
+        clock_t end = clock();
+        double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+        // cout << "Execution time is: " << elapsed_secs << endl;
+        cout << elapsed_secs << endl;
+    }
+}
 
 int main(int argc, char** argv) {
     ios_base::sync_with_stdio(false); cin.tie(NULL);
     string transactionFileName(argv[1]);
-    numTransactions=0;
-    outf=string(argv[3]);
-    minSup= atof(argv[2]);
-    outc.open(outf);
-    
-    GenAllItemSets(transactionFileName);
+    double minimumSupport= atof(argv[2]);    
+    string outputFileName(argv[3]);
+    outputFileName += ".txt";
+    plot = atoi(argv[4]) == 1 ? true : false;
+    fptreeGo(transactionFileName, outputFileName, minimumSupport);
     return 0;
 }
-
-

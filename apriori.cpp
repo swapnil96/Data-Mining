@@ -11,6 +11,7 @@
 #include <iterator>
 
 using namespace std;
+bool plot;
 
 class Apriori {
     private:
@@ -51,11 +52,13 @@ class Apriori {
             }
             input.close();
         }
-        cout << "Number of items: " << numItems << ", Number of transactions: " << numTransactions << endl;
+        // cout << "Number of items: " << numItems << ", Number of transactions: " << numTransactions << endl;
     }
 
     void start() {
-        clock_t begin = clock();
+        clock_t begin;
+        if (plot)
+            begin = clock();
 
         // Generate candidates of size 1
         createCandidatesOfSizeOne();
@@ -69,9 +72,12 @@ class Apriori {
             }
             itemsetSize++;
         }
-        clock_t end = clock();
-        double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-        cout << "Execution time is: " << elapsed_secs << endl;
+        if (plot) {
+            clock_t end = clock();
+            double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+            cout << elapsed_secs << endl;
+        }
+        // cout << "Execution time is: " << elapsed_secs << endl;
     }
 
     void createCandidatesOfSizeOne() {
@@ -125,7 +131,7 @@ class Apriori {
             }
 
         itemsets = frequentItemsets;
-        cout << "Done finding frequent sets: " << itemsets.size() << endl;
+        // cout << "Done finding frequent sets: " << itemsets.size() << endl;
     }
 
     void createCandidateSetsFromFrequentSets() {
@@ -176,17 +182,22 @@ class Apriori {
             temp.push_back(it.second);
     
         itemsets = temp;
-        cout << "Done making new itemsets: " << itemsets.size() << endl;
+        // cout << "Done making new itemsets: " << itemsets.size() << endl;
     }
 };
 
+void aprioriGo(string transactionFileName, string outputFileName, double minimumSupport) {
+    Apriori apriori(transactionFileName, outputFileName, minimumSupport);
+    apriori.start();
+}
 
 int main(int argc, char** argv) {
     ios_base::sync_with_stdio(false); cin.tie(NULL);
     string transactionFileName(argv[1]);
     double minimumSupport = atof(argv[2]);
     string outputFileName(argv[3]);
-    Apriori apriori(transactionFileName, outputFileName, minimumSupport); 
-    apriori.start();
+    plot = atoi(argv[4]) == 1 ? true : false;
+    outputFileName += ".txt";
+    aprioriGo(transactionFileName, outputFileName, minimumSupport);
     return 0;
 }
