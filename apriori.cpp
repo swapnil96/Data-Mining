@@ -5,6 +5,7 @@
 #include <sstream>
 #include <ctime>
 #include <unordered_map>
+#include <unordered_set>
 #include <assert.h>
 #include <algorithm>
 #include <ostream>
@@ -62,15 +63,17 @@ class Apriori {
 
         // Generate candidates of size 1
         createCandidatesOfSizeOne();
+        if (itemsets.size() > 0)
+            createFrequentSetsOfSizeOne();
         int itemsetSize = 1; // Current size of itemset 
         int totalFrequentSets = 0;
         while (itemsets.size() > 0) {
-            createFrequentSetsFromCandidateSets();
             if (itemsets.size() != 0) {
                 totalFrequentSets += itemsets.size();
                 createCandidateSetsFromFrequentSets();
+                createFrequentSetsFromCandidateSets();
+                itemsetSize++;
             }
-            itemsetSize++;
         }
         if (plot) {
             clock_t end = clock();
@@ -78,6 +81,7 @@ class Apriori {
             cout << elapsed_secs << endl;
         }
         // cout << "Execution time is: " << elapsed_secs << endl;
+        output.close();
     }
 
     void createCandidatesOfSizeOne() {
@@ -85,6 +89,30 @@ class Apriori {
             vector<int> temp{i};
             itemsets.push_back(temp);
         }
+    }
+
+    void createFrequentSetsOfSizeOne() {
+        vector<int> counts(itemsets.size(), 0);
+        vector<vector<int>> frequentItemsets;
+
+        string line;
+        ifstream input(transactionFileName, ios::in);
+        int number;
+
+        for (int i = 0; i < numTransactions; i++) {
+            getline(input, line);
+            istringstream iss(line);
+            while (iss >> number)
+                counts[number]++;
+        }
+        input.close();
+        for (int i = 0; i < itemsets.size(); i++)
+			if ((counts[i]/(double)numTransactions) >= minimumSupport) {
+				frequentItemsets.push_back({i});
+                output << i << endl;
+            }
+
+        itemsets = frequentItemsets;
     }
 
     void createFrequentSetsFromCandidateSets() {
@@ -96,19 +124,19 @@ class Apriori {
 
         string line;
         ifstream input(transactionFileName, ios::in);
-        vector<bool> masks(numItems, false);
         int number;
 
         for (int i = 0; i < numTransactions; i++) {
             getline(input, line);
             istringstream iss(line);
+            vector<bool> masks(numItems, false);
             while (iss >> number)
                 masks[number] = true;
 
             for (int j = 0; j < itemsets.size(); j++) {
                 isFrequent = true;
                 for (int item: itemsets[j])
-                    if (masks[item] == false) {
+                    if (masks[item] == false) {    
                         isFrequent = false;
                         break;
                     }
@@ -116,12 +144,8 @@ class Apriori {
                 if (isFrequent)
                     counts[j]++;
             }
-            istringstream iss_rev(line);
-            while (iss_rev >> number)
-                masks[number] = false;
         }
         input.close();
-
         for (int i = 0; i < itemsets.size(); i++)
 			if ((counts[i]/(double)numTransactions) >= minimumSupport) {
 				frequentItemsets.push_back(itemsets[i]);
@@ -169,8 +193,10 @@ class Apriori {
 
 
                 if (different == 1) {
-                    // TODO Pruning
                     sort(newItemSet.begin(), newItemSet.end());
+                    // TODO Pruning
+
+
                     stringstream result;
                     copy(newItemSet.begin(), newItemSet.end(), ostream_iterator<int>(result, " "));
                     hash_map[result.str().c_str()] = newItemSet;

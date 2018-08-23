@@ -3,6 +3,7 @@
 ap="-apriori"
 fp="-fptree"
 pl="-plot"
+ck="-check"
 
 if [ "$2" == "$pl" ]
 then
@@ -16,6 +17,15 @@ then
         echo "" >> logs.txt 
     done
     python plot.py
+elif [ "$2" == "$ck" ]
+then
+    for x in `seq 1 100`
+    do
+        echo $x
+        ./apriori $1 $x t1 0
+        ./fptree $1 $x t2 0
+        python check.py t1.txt t2.txt >> ans.txt 
+    done
 else
     if [ "$3" == "$ap" ]
     then

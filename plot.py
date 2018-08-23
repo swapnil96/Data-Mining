@@ -9,11 +9,14 @@ for line in file:
 	Y1.append(float(x[0]))
 	Y2.append(float(x[1]))
 
+fig=plt.figure
 plt.plot(X,Y1,'ro')
 plt.plot(X,Y2,'go')
-l1=plt.plot(X,Y1,'r')
-l2=plt.plot(X,Y2,'g')
+l1=plt.plot(X,Y1,'r',label='Apriori')
+l2=plt.plot(X,Y2,'g',label='FP-Tree')
 plt.xlabel('Minimum Support Values')
 plt.ylabel('Running time')
-plt.legend([l1,l2],['Apriori','FP-Tree'])
-plt.show()	
+plt.xlim([0,100])
+plt.legend(loc='upper right')
+plt.savefig('plot.png',dpi=200)	
+plt.show()
